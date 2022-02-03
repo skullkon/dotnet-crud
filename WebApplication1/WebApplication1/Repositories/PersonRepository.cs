@@ -20,12 +20,14 @@ public class PersonRepo : IPersonRepo
 
     public Person GetPersonById(int id)
     {
-        throw new NotImplementedException();
+        var person = _context.Persons.Include(s => s.Skills).FirstOrDefault(p => p.Id == id);
+        Console.WriteLine(person);
+        return person;
     }
 
     public void CreatePerson(Person person)
     {
-        throw new NotImplementedException();
+        _context.Persons.Add(person);
     }
 
     public void EditPerson(int id, Person person)
@@ -35,7 +37,8 @@ public class PersonRepo : IPersonRepo
 
     public void DeletePerson(int id)
     {
-        throw new NotImplementedException();
+        // var person = _context.Persons.Include(s => s.Skills).FirstOrDefault(p => p.Id == id);
+        // return _context.Persons.Include(s => s.Skills).ToList()[id];
     }
 
     public bool Save()

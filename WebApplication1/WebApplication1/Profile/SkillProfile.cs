@@ -8,6 +8,7 @@ public class SkillProfile : AutoMapper.Profile
     public SkillProfile()
     {
         CreateMap<Person, PersonReadDto>();
+        CreateMap<PersonCreateDto, Person>();
     }
     
 }
