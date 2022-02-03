@@ -1,73 +1,87 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
+using WebApplication1.Models;
+using WebApplication1.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<PersonDb>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"));
+});
+builder.Services.AddScoped<IPersonRepo, PersonRepo>();
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddControllers();
+
 var app = builder.Build();
 
-/*GET api/v1/persons
-Возвращает массив объектов типа Person:
-[Person, Person, …]
+app.MapControllers();
 
-GET api/v1/person/[id]
-Где id – уникальный идентификатор сотрудника.
-Возвращает объект типа Person.
-
-POST api/v1/person
-Где id – уникальный идентификатор сотрудника.
-В теле запроса передавать объект Person. Id должен быть null или undefined.
-Создаёт нового сотрудника в системе с указанными навыками.
-
-PUT api/v1/person/[id]
-Где id – уникальный идентификатор сотрудника.
-В теле запроса передавать объект Person. Id должен быть null или undefined.
-Обновляет данные сотрудника согласно значениям, указанным в объекте Person в теле. Обновляет навыки сотрудника согласно указанному набору.
-
-DELETE api/v1/person/[id]
-Где id – уникальный идентификатор сотрудника.
-Удаляет с указанным id сотрудника из системы.
-
-*/
-
-var persons = new List<Person>();
-persons.Add(new Person() {Name = "Sergey", DisplayName = "Sergey", Id = 1});
-persons[0].Skills.Add(new Skill(){Id = 10,Level = 10,Name = "test"});
-
-app.MapGet("/api/v1/persons", () => persons);
-app.MapGet("/api/v1/person/{id}", (int id) => persons.FirstOrDefault(p => p.Id == id));
-app.MapPost("/api/v1/person", (Person person) => persons.Add(person));
-app.MapPut("/api/v1/person/{id}", (Person person) =>
+if (app.Environment.IsDevelopment())
 {
-    var index = persons.FindIndex(p => p.Id == person.Id);
-    if (index < 0)
-    {
-        throw new Exception("Person not found");
-    }
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<PersonDb>();
+    db.Database.EnsureDeleted();
+    db.Database.EnsureCreated();
+}
 
-    persons[index] = person;
-});
-app.MapDelete("/api/v1/person/{id}", (int id) =>
+//
+// // Загрузить всех покупателей и связанные с ними заказы
+// List<Customer> customers = context.Customers
+//     .Include(c => c.Orders)
+//     .ToList();      // +1 запрос к базе
+//
+// // ... какой-то код работы с данными покупателей
+//
+// // Получить все их заказы
+// List<Order> orders = customers.SelectMany(c => c.Orders)
+//     // Запрос к базе данных не выполняется,
+//     // т.к. данные уже были извлечены 
+//     // ранее с помощью прямой загрузки
+//     .ToList();
+
+// app.MapGet("/api/v1/persons", (PersonDb db) => db.Persons.Include(s => s.Skills));
+app.MapGet("/api/v1/person", (PersonDb db) =>
 {
-    var index = persons.FindIndex(p => p.Id == id);
-    if (index < 0)
-    {
-        throw new Exception("Person not found");
-    }
+    Person sergey = new Person() { Name = "Sergey", DisplayName = "Test"};
+    db.Persons.AddRange(sergey);
+ 
+    Skill fight = new Skill() { Name = "Fight",Person = sergey};
 
-    persons.RemoveAt(index);
+    db.Skills.AddRange(fight);
+    db.SaveChanges();
 });
+// app.MapPost("/api/v1/person", (Person person) => persons.Add(person));
+// app.MapPut("/api/v1/person/{id}", (Person person) =>
+// {
+//     var index = persons.FindIndex(p => p.Id == person.Id);
+//     if (index < 0)
+//     {
+//         throw new Exception("Person not found");
+//     }
+//
+//     persons[index] = person;
+// });
+// app.MapDelete("/api/v1/person/{id}", (int id) =>
+// {
+//     var index = persons.FindIndex(p => p.Id == id);
+//     if (index < 0)
+//     {
+//         throw new Exception("Person not found");
+//     }
+//
+//     persons.RemoveAt(index);
+// });
 
 app.Run();
 
-public class Person
+public class PersonDb : DbContext
 {
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string DisplayName { get; set; }
-    public List<Skill> Skills { get; set; } = new List<Skill>();
-}
+    public PersonDb(DbContextOptions opt) : base(opt)
+    {
+    }
 
-public class Skill
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public byte Level { get; set; }
+    public DbSet<Person> Persons => Set<Person>();
+    public DbSet<Skill> Skills => Set<Skill>();
+    
 }
