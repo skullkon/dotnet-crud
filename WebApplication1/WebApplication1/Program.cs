@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
@@ -32,8 +34,26 @@ persons[0].Skills.Add(new Skill(){Id = 10,Level = 10,Name = "test"});
 app.MapGet("/api/v1/persons", () => persons);
 app.MapGet("/api/v1/person/{id}", (int id) => persons.FirstOrDefault(p => p.Id == id));
 app.MapPost("/api/v1/person", (Person person) => persons.Add(person));
-// app.MapPut("/api/v1/person/{id}", () => { });
-// app.MapDelete("/api/v1/person/{id}", () => { });
+app.MapPut("/api/v1/person/{id}", (Person person) =>
+{
+    var index = persons.FindIndex(p => p.Id == person.Id);
+    if (index < 0)
+    {
+        throw new Exception("Person not found");
+    }
+
+    persons[index] = person;
+});
+app.MapDelete("/api/v1/person/{id}", (int id) =>
+{
+    var index = persons.FindIndex(p => p.Id == id);
+    if (index < 0)
+    {
+        throw new Exception("Person not found");
+    }
+
+    persons.RemoveAt(index);
+});
 
 app.Run();
 
