@@ -33,20 +33,58 @@ public class PersonController : ControllerBase
     [HttpGet("{id}")]
     public ActionResult<PersonReadDto> GetPersonById(string id)
     {
-        Console.WriteLine("--> Getting Persons....");
+        
+        Console.WriteLine("--> Getting Person by id....");
 
         var personItem = _repository.GetPersonById(Int32.Parse(id));
 
-        return Ok(_mapper.Map<PersonReadDto>(personItem));
+        if (personItem != null)
+        {
+            return Ok(_mapper.Map<PersonReadDto>(personItem));
+        }
+
+        return NotFound("Persons not found");
     }
     
     [HttpPost]
     public ActionResult<PersonCreateDto> CreatePerson(PersonCreateDto personCreateDto)
     {
-        Console.WriteLine("--> Creating Persons....");
+        Console.WriteLine("--> Creating Person....");
         var personModel = _mapper.Map<Person>(personCreateDto);
         _repository.CreatePerson(personModel);
         _repository.Save();
-        return personCreateDto;
+        return Ok(personCreateDto);
+    }
+    
+    [HttpPut("{id}")]
+    public ActionResult<PersonCreateDto> EditPerson(int id,PersonCreateDto personCreateDto)
+    {
+        Console.WriteLine("--> Edit Person....");
+        var personModel = _mapper.Map<Person>(personCreateDto);
+
+        try
+        {
+            _repository.EditPerson(id, personModel);
+            return Ok(personCreateDto);
+        }
+        catch (Exception ex)
+        {
+            return NotFound();
+        }
+    }
+    
+    [HttpDelete("{id}")]
+    public ActionResult<PersonCreateDto> DeletePerson(int id)
+    {
+        Console.WriteLine("--> Creating Persons....");
+        try
+        {
+            _repository.DeletePerson(id);
+            return Ok("Deleted successfully");
+        }
+        catch (Exception ex)
+        {
+            return NotFound();
+        }
     }
 }

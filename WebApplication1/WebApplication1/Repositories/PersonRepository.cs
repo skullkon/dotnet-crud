@@ -32,13 +32,26 @@ public class PersonRepo : IPersonRepo
 
     public void EditPerson(int id, Person person)
     {
-        throw new NotImplementedException();
+        var personForEdit = GetPersonById(id);
+        if (person == null)
+        {
+            throw new Exception("Person with this id was not found");
+        }
+        personForEdit.Name = person.Name;
+        personForEdit.DisplayName = person.DisplayName;
+        personForEdit.Skills = person.Skills;
+        _context.SaveChanges();
     }
 
     public void DeletePerson(int id)
     {
-        // var person = _context.Persons.Include(s => s.Skills).FirstOrDefault(p => p.Id == id);
-        // return _context.Persons.Include(s => s.Skills).ToList()[id];
+        var person = _context.Persons.Include(s => s.Skills).FirstOrDefault(p => p.Id == id);
+        if (person == null)
+        {
+            throw new Exception("Person with this id was not found");
+        }
+        _context.Persons.Remove(person);
+        _context.SaveChanges();
     }
 
     public bool Save()
