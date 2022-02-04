@@ -11,8 +11,7 @@ public class PersonRepo : IPersonRepo
     {
         _context = context;
     }
-
-
+    
     public IEnumerable<Person> GetPersons()
     {
         return _context.Persons.Include(s => s.Skills);
@@ -33,7 +32,7 @@ public class PersonRepo : IPersonRepo
     public void EditPerson(int id, Person person)
     {
         var personForEdit = GetPersonById(id);
-        if (person == null)
+        if (personForEdit == null)
         {
             throw new Exception("Person with this id was not found");
         }

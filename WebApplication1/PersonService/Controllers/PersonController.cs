@@ -20,6 +20,16 @@ public class PersonController : ControllerBase
         _repository = repository;
         _mapper = mapper;
     }
+    
+    /// <summary>
+    /// Gets the list of persons
+    /// </summary>
+    /// <remarks>
+    /// Sample request:
+    /// GET /api/v1/person
+    /// </remarks>
+    /// <returns>Returns NoteListVm</returns>
+    /// <response code="200">Success</response>
     [HttpGet]
     public ActionResult<IEnumerable<PersonReadDto>> GetPersons()
     {
@@ -30,10 +40,9 @@ public class PersonController : ControllerBase
         return Ok(_mapper.Map<IEnumerable<PersonReadDto>>(personItem));
     }
     
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = "GetPlatformById")]
     public ActionResult<PersonReadDto> GetPersonById(string id)
     {
-        
         Console.WriteLine("--> Getting Person by id....");
 
         var personItem = _repository.GetPersonById(Int32.Parse(id));
@@ -42,11 +51,34 @@ public class PersonController : ControllerBase
         {
             return Ok(_mapper.Map<PersonReadDto>(personItem));
         }
-
         return NotFound("Persons not found");
     }
-    
+    /// <summary>
+    /// Creates a TodoItem.
+    /// </summary>
+    /// <remarks>
+    /// Sample request:
+    ///
+    ///     POST /api/v1/person
+    ///      { 
+    ///         "name": "Masha",
+    ///         "displayName": "MashaEditted",
+    ///         "skills": [
+    ///         {
+    ///             "name": "test1",
+    ///             "level": 10
+    ///         }
+    ///     ]
+    /// }
+    ///
+    /// </remarks>
+    /// <param name="item"></param>
+    /// <returns>A newly created TodoItem</returns>
+    /// <response code="201">Returns the newly created item</response>
+    /// <response code="400">If the item is null</response>            
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public ActionResult<PersonCreateDto> CreatePerson(PersonCreateDto personCreateDto)
     {
         Console.WriteLine("--> Creating Person....");
@@ -72,7 +104,10 @@ public class PersonController : ControllerBase
             return NotFound();
         }
     }
-    
+    /// <summary>
+    /// Deletes a specific Person.
+    /// </summary>
+    /// <param name="id"></param>   
     [HttpDelete("{id}")]
     public ActionResult<PersonCreateDto> DeletePerson(int id)
     {
