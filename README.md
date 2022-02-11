@@ -7,4 +7,3 @@
 - EF
 - Swashbuckle
 - Serilog
-- xUnit
