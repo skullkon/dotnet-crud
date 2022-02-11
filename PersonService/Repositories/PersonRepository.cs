@@ -1,38 +1,38 @@
 using Microsoft.EntityFrameworkCore;
+using PersonService.Helpers;
 using PersonService.Models;
 
 namespace PersonService.Repositories;
 
 public class PersonRepository : IPersonRepository
 {
-    private readonly PersonDb _context;
+    private readonly DataContext _context;
 
-    public PersonRepository(PersonDb context)
+    public PersonRepository(DataContext context)
     {
         _context = context;
     }
 
 
-    public IEnumerable<Person> GetPersons()
+    public async Task<IEnumerable<Person>> GetPersonsAsync()
     {
-        return _context.Persons.Include(s => s.Skills);
+        return await Task.FromResult(_context.Persons.Include(s => s.Skills));
     }
 
-    public Person GetPersonById(int id)
+    public async Task<Person> GetPersonByIdAsync(int id)
     {
-        var person = _context.Persons.Include(s => s.Skills).FirstOrDefault(p => p.Id == id);
-        Console.WriteLine(person);
+        var person = await _context.Persons.Include(s => s.Skills).FirstOrDefaultAsync(p => p.Id == id);
         return person;
     }
 
-    public void CreatePerson(Person person)
+    public async Task CreatePerson(Person person)
     {
-        _context.Persons.Add(person);
+        await _context.Persons.AddAsync(person);
     }
 
-    public void EditPerson(int id, Person person)
+    public async Task EditPerson(int id, Person person)
     {
-        var personForEdit = GetPersonById(id);
+        var personForEdit =  await GetPersonByIdAsync(id);
         if (person == null)
         {
             throw new Exception("Person with this id was not found");
@@ -40,18 +40,18 @@ public class PersonRepository : IPersonRepository
         personForEdit.Name = person.Name;
         personForEdit.DisplayName = person.DisplayName;
         personForEdit.Skills = person.Skills;
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
 
-    public void DeletePerson(int id)
+    public async Task DeletePerson(int id)
     {
-        var person = _context.Persons.Include(s => s.Skills).FirstOrDefault(p => p.Id == id);
+        var person = await _context.Persons.Include(s => s.Skills).FirstOrDefaultAsync(p => p.Id == id);
         if (person == null)
         {
             throw new Exception("Person with this id was not found");
         }
         _context.Persons.Remove(person);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
 
     public bool Save()

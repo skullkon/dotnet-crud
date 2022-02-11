@@ -38,11 +38,11 @@ public class PersonController : ControllerBase
     /// <response code="200">Success</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public ActionResult<IEnumerable<PersonReadDto>> GetPersons()
+    public async Task<ActionResult<IEnumerable<PersonReadDto>>> GetPersons()
     {
         Console.WriteLine("--> Getting Persons....");
 
-        var personItem = _repository.GetPersons();
+        var personItem = await _repository.GetPersonsAsync();
 
         return Ok(_mapper.Map<IEnumerable<PersonReadDto>>(personItem));
     }
@@ -63,17 +63,12 @@ public class PersonController : ControllerBase
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<PersonReadDto> GetPersonById(string id)
+    public async Task<ActionResult<PersonReadDto>> GetPersonById(int id)
     {
         
         Console.WriteLine("--> Getting Person by id....");
-        if (!ParseHelper.IsNumber(id))
-        {
-            _logger.LogError("Id is incorrect");
-            return StatusCode(400);
-        }
-        var intId = Int32.Parse(id);
-        var personItem = _repository.GetPersonById(intId);
+
+        var personItem = await _repository.GetPersonByIdAsync(id);
 
         if (personItem != null)
         {
@@ -107,11 +102,11 @@ public class PersonController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public ActionResult<PersonCreateDto> CreatePerson(PersonCreateDto personCreateDto)
+    public async Task<ActionResult<PersonCreateDto>> CreatePerson(PersonCreateDto personCreateDto)
     {
         Console.WriteLine("--> Creating Person....");
         var personModel = _mapper.Map<Person>(personCreateDto);
-        _repository.CreatePerson(personModel);
+        await _repository.CreatePerson(personModel);
         _repository.Save();
         return Ok(personCreateDto);
     }
@@ -141,20 +136,14 @@ public class PersonController : ControllerBase
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<PersonCreateDto> EditPerson(string id,PersonCreateDto personCreateDto)
+    public async Task<ActionResult<PersonCreateDto>> EditPerson(int id,PersonCreateDto personCreateDto)
     {
-        if (!ParseHelper.IsNumber(id))
-        {
-            _logger.LogError("Id is incorrect");
-            return StatusCode(400);
-        }
 
-        var intId = Int32.Parse(id);
         Console.WriteLine("--> Edit Person....");
         var personModel = _mapper.Map<Person>(personCreateDto);
         try
         {
-            _repository.EditPerson(intId, personModel);
+            await _repository.EditPerson(id, personModel);
             return Ok(personCreateDto);
         }
         catch (Exception ex)
@@ -178,19 +167,13 @@ public class PersonController : ControllerBase
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<PersonCreateDto> DeletePerson(string id)
+    public async Task<ActionResult<PersonCreateDto>> DeletePerson(int id)
     {
-        if (!ParseHelper.IsNumber(id))
-        {
-            _logger.LogError("Id is incorrect");
-            return StatusCode(400);
-        }
-
-        var intId = Int32.Parse(id);
+        
         Console.WriteLine("--> Creating Persons....");
         try
         {
-            _repository.DeletePerson(intId);
+            await _repository.DeletePerson(id);
             return Ok("Deleted successfully");
         }
         catch (Exception ex)

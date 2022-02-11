@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using PersonService.Helpers;
 using PersonService.Models;
 using PersonService.Repositories;
 using Serilog;
@@ -14,7 +15,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
     var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddDbContext<PersonDb>(options =>
+builder.Services.AddDbContext<DataContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres"));
 });
@@ -37,7 +38,7 @@ app.MapControllers();
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<PersonDb>();
+    var db = scope.ServiceProvider.GetRequiredService<DataContext>();
     app.UseSwagger(options =>
     {
         options.SerializeAsV2 = true;
@@ -52,13 +53,3 @@ if (app.Environment.IsDevelopment())
 
 app.Run();
 
-public class PersonDb : DbContext
-{
-    public PersonDb(DbContextOptions opt) : base(opt)
-    {
-    }
-
-    public DbSet<Person> Persons => Set<Person>();
-    public DbSet<Skill> Skills => Set<Skill>();
-    
-}
